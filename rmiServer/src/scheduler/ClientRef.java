@@ -7,14 +7,14 @@ import java.util.List;
 
 public class ClientRef {
     InterfaceCli interfaceCli;
-    List<Appointment> appointments;
+    List<String> appointments;
 
     public ClientRef(InterfaceCli interfaceCli) {
         this.interfaceCli = interfaceCli;
         this.appointments = new ArrayList<>();
     }
 
-    public void addAppointment(Appointment appointment) {
-        appointments.add(appointment);
+    public void addAppointment(String appointmentName) {
+        appointments.add(appointmentName);
     }
 }
