@@ -58,20 +58,31 @@ public class CliImpl extends UnicastRemoteObject implements InterfaceCli {
 //    }
 
     @Override
-    public void inviteToAppointment(String apName, Timestamp apTime) throws RemoteException {
-        System.out.println("You were invited to " + apName + " at " + apTime.toString());
-        System.out.println("Do you accepted? (y/n)");
-        String option = userReader.nextLine();
-        if (option.startsWith("y")) {
+    public void inviteToAppointment(String apName, Timestamp apTime, String text, byte[] signature) throws RemoteException {
+        try {
+            clientSignature.update(text.getBytes());
+
+            if (clientSignature.verify(signature)) {
+                System.out.println("** Validated server message **");
+
+                System.out.println("You were invited to " + apName + " at " + apTime.toString());
+                System.out.println("Do you accepted? (y/n)");
+                String option = userReader.nextLine();
+                if (option.startsWith("y")) {
 //            System.out.println("What time is alert to be set? (set 0 if no alarm is needed)");
 //            int time = Integer.parseInt(userReader.nextLine());
-            System.out.println("Appointment confirmed");
-            serverReference.confirmAppointment(clientName, apName, 5);
-        } else if (option.startsWith("n")) {
-            System.out.println("Appointment refused");
-            serverReference.confirmAppointment(clientName, apName, -1);
+                    System.out.println("Appointment confirmed");
+                    serverReference.confirmAppointment(clientName, apName, 5);
+                } else if (option.startsWith("n")) {
+                    System.out.println("Appointment refused");
+                    serverReference.confirmAppointment(clientName, apName, -1);
+                }
+            } else {
+                System.out.println("Not validate server message");
+            }
+        } catch (SignatureException e) {
+            throw new RuntimeException(e);
         }
-
     }
 
 

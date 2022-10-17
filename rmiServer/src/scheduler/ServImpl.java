@@ -12,6 +12,7 @@ public class ServImpl extends UnicastRemoteObject implements InterfaceServ {
 
     Map<String, ClientRef> clients;
     Map<String, Appointment> appointments;
+    Map<String, List<String>> clientsToInvite;
 
     KeyPairGenerator keyPairGenerator;
     KeyPair keyPair;
@@ -20,8 +21,9 @@ public class ServImpl extends UnicastRemoteObject implements InterfaceServ {
 
     Signature serverSignature;
 
-    protected ServImpl(Map<String, Appointment> appointments) throws RemoteException {
+    protected ServImpl(Map<String, Appointment> appointments, Map<String, List<String>> clientsToInvite) throws RemoteException {
         clients = new HashMap<>();
+        this.clientsToInvite = clientsToInvite;
         this.appointments = appointments;
 
         try {
@@ -70,13 +72,17 @@ public class ServImpl extends UnicastRemoteObject implements InterfaceServ {
         System.out.println("Registering new appointment!");
         appointments.put(apName, new Appointment(apTime)); // Register appointment
         this.confirmAppointment(clientName, apName, alertTime); // Confirm appointment for its creator
-        // Change, because is sequential and not parallel
+
+
+        List<String> clientInvitations = new ArrayList<>();
         for (int i = 0 ; i< guests.size(); i++) {
-            try {
-                clients.get(guests.get(i)).interfaceCli.inviteToAppointment(apName, apTime); // Asks confirmation for all guests
-            } catch (RemoteException e) {
-                throw new RuntimeException(e);
+            if (clientsToInvite.containsKey(guests.get(i)) && !clientsToInvite.get(guests.get(i)).isEmpty()) {
+                clientInvitations = clientsToInvite.get(guests.get(i));
             }
+            clientInvitations.add(apName);
+            clientsToInvite.put(guests.get(i), clientInvitations);
+//           clients.get(guests.get(i)).interfaceCli.inviteToAppointment(apName, apTime); // Asks confirmation for all guests
+
         }
     }
 
@@ -138,6 +144,17 @@ public class ServImpl extends UnicastRemoteObject implements InterfaceServ {
         } catch (RemoteException e) {
             throw new RuntimeException(e);
         } catch (SignatureException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public void inviteClient(String clientName, String appointmentName) {
+        try {
+            byte[] msgBytes = "Invite".getBytes();
+            serverSignature.update(msgBytes);
+            byte[] signature = serverSignature.sign();
+            clients.get(clientName).interfaceCli.inviteToAppointment(appointmentName, appointments.get(appointmentName).dateTime, "Invite", signature); // Asks confirmation for all guests
+        } catch (RemoteException | SignatureException e) {
             throw new RuntimeException(e);
         }
     }

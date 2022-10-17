@@ -6,7 +6,9 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.sql.Time;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class Server {
@@ -14,10 +16,10 @@ public class Server {
     public static void main(String[] args) throws RemoteException {
         int namingServicePort = 1099;
         Map<String, Appointment> appointments = new HashMap<>();
+        Map<String, List<String>> clientsToInvite = new HashMap<>();
 
         Registry namingServiceReference = LocateRegistry.createRegistry(namingServicePort);
-
-        InterfaceServ serverReference = new ServImpl(appointments);
+        InterfaceServ serverReference = new ServImpl(appointments, clientsToInvite);
 
         namingServiceReference.rebind("scheduler", serverReference);
 
@@ -35,6 +37,13 @@ public class Server {
                             serverReference.notify(guest.getKey(), "* Event " + appointment.getKey() + " starting " + guest.getValue() + " minutes from now!!!");
                     }
                 }
+
+                for (Map.Entry<String, List<String>> client : clientsToInvite.entrySet()) {
+                    for (int i = 0 ; i< client.getValue().size(); i++) {
+                        serverReference.inviteClient(client.getKey(), client.getValue().get(i));
+                    }
+                }
+                clientsToInvite = new HashMap<>();
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }

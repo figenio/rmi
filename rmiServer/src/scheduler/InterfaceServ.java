@@ -17,4 +17,5 @@ public interface InterfaceServ extends Remote {
 
 
      public void notify(String clientName, String msg) throws RemoteException;
+     public void inviteClient(String clientName, String appointmentName) throws RemoteException;
 }
