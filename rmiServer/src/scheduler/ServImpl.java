@@ -12,9 +12,9 @@ public class ServImpl extends UnicastRemoteObject implements InterfaceServ {
     Map<String, ClientRef> clients;
     Map<String, Appointment> appointments;
 
-    protected ServImpl() throws RemoteException {
+    protected ServImpl(Map<String, Appointment> appointments) throws RemoteException {
         clients = new HashMap<>();
-        appointments = new HashMap<>();
+        this.appointments = appointments;
     }
 
     /* ----- IN METHODS ----- */
@@ -114,4 +114,12 @@ public class ServImpl extends UnicastRemoteObject implements InterfaceServ {
 
 
     /* ----- OUT METHODS ----- */
+
+    public void notify(String clientName, String msg) {
+        try {
+            this.clients.get(clientName).interfaceCli.notify(msg);
+        } catch (RemoteException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }

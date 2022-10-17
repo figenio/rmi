@@ -70,7 +70,7 @@ public class CliImpl extends UnicastRemoteObject implements InterfaceCli {
 
         System.out.println("Give a name to the new appointment:");
         String appointmentName = userReader.nextLine();
-        System.out.println("Set a date and time to the new appointment (format '2022-11-11 12:00:00'):");
+        System.out.println("Set a date and time to the new appointment (format '2022-11-16 23:30:00'):");
         Timestamp appointmentTime = Timestamp.valueOf(userReader.nextLine());
         System.out.println("Set alert for the new appointment (must be int):");
         int alertTime = Integer.parseInt(userReader.nextLine());
