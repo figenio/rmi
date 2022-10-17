@@ -34,7 +34,6 @@ public class Server {
                                 && guest.getValue() > 0)
                             serverReference.notify(guest.getKey(), "* Event " + appointment.getKey() + " starting " + guest.getValue() + " minutes from now!!!");
                     }
-
                 }
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);

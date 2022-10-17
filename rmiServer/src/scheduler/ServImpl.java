@@ -1,6 +1,7 @@
 package scheduler;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
+import java.security.*;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -12,31 +13,55 @@ public class ServImpl extends UnicastRemoteObject implements InterfaceServ {
     Map<String, ClientRef> clients;
     Map<String, Appointment> appointments;
 
+    KeyPairGenerator keyPairGenerator;
+    KeyPair keyPair;
+    PrivateKey privateKey;
+    PublicKey publicKey;
+
+    Signature serverSignature;
+
     protected ServImpl(Map<String, Appointment> appointments) throws RemoteException {
         clients = new HashMap<>();
         this.appointments = appointments;
+
+        try {
+            // Creates key generator and initializes key pair
+            keyPairGenerator = KeyPairGenerator.getInstance("DSA");
+            keyPairGenerator.initialize(512);
+            keyPair = keyPairGenerator.generateKeyPair();
+            privateKey = keyPair.getPrivate();
+            publicKey = keyPair.getPublic();
+
+            // Creates and initializes signature
+            serverSignature = Signature.getInstance("DSA");
+            serverSignature.initSign(privateKey);
+        } catch (NoSuchAlgorithmException | InvalidKeyException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /* ----- IN METHODS ----- */
 
     // Simple method for testing purposes
+    @Override
     public void pingServer(String clientName, InterfaceCli clientInterface) {
         System.out.println("Received ping from client: " + clientName);
+        notify(clientName, "ping");
     }
 
-
+    // Registers new client and returns server public key
     @Override
-    public void registerClient(String clientName, InterfaceCli clientInterface) {
+    public PublicKey registerClient(String clientName, InterfaceCli clientInterface) {
         clients.put(clientName, new ClientRef(clientInterface));
         System.out.println("New client: " + clientName);
-        try {
-            Thread.sleep(1000);
-            clients.get(clientName).interfaceCli.notify("Registered"); // Should return public key
-        } catch (RemoteException e) {
-            throw new RuntimeException(e);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
+        return publicKey;
+//        try {
+//            clients.get(clientName).interfaceCli.registeringConfirmation("Registered", publicKey); // Should return public key
+//        } catch (RemoteException e) {
+//            throw new RuntimeException(e);
+//        } catch (InterruptedException e) {
+//            throw new RuntimeException(e);
+//        }
     }
 
     // Register a new appointment and send guests their invitation
@@ -101,24 +126,18 @@ public class ServImpl extends UnicastRemoteObject implements InterfaceServ {
         return appointmentNames;
     }
 
-    /* CANCELAMENTO DE COMPROMISSO
-    * Cliente informa o nome do compromisso a ser cancelado
-    * */
-
-    /* CANCELAMENTO DE ALERTA
-     * Cliente informa o nome do compromisso a ter o alerta cancelado
-     * */
-
-    /* CONSULTA
-    * Consulta por dia e retorna todos do dia. */
-
-
     /* ----- OUT METHODS ----- */
 
     public void notify(String clientName, String msg) {
         try {
-            this.clients.get(clientName).interfaceCli.notify(msg);
+            byte[] msgBytes = msg.getBytes();
+            serverSignature.update(msgBytes);
+            byte[] signature = serverSignature.sign();
+
+            this.clients.get(clientName).interfaceCli.notify(msg, signature);
         } catch (RemoteException e) {
+            throw new RuntimeException(e);
+        } catch (SignatureException e) {
             throw new RuntimeException(e);
         }
     }

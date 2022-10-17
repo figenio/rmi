@@ -2,6 +2,7 @@ package scheduler;
 
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
+import java.security.*;
 import java.sql.Timestamp;
 import java.util.List;
 import java.util.Scanner;
@@ -10,30 +11,51 @@ public class CliImpl extends UnicastRemoteObject implements InterfaceCli {
 
     Scanner userReader = new Scanner(System.in);
     String clientName;
+    Signature clientSignature;
 
     InterfaceServ serverReference = null;
+    PublicKey serverPublicKey;
 
     protected CliImpl(String clientName, InterfaceServ serverReference) throws RemoteException {
         this.clientName = clientName;
         this.serverReference = serverReference;
+
         System.out.println("Registering client on server");
-        this.serverReference.registerClient(clientName, this);
+        serverPublicKey = this.serverReference.registerClient(clientName, this);
+        System.out.println("Server public key: " + serverPublicKey.toString());
+
+        try {
+            clientSignature = Signature.getInstance("DSA");
+            clientSignature.initVerify(serverPublicKey);
+        } catch (NoSuchAlgorithmException | InvalidKeyException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /* ----- IN METHODS ----- */
 
     // Simple method for testing purposes
     @Override
-    public void notify(String text) throws RemoteException {
-        System.out.println("Received from server: " + text);
+    public void notify(String msg, byte[] signature) throws RemoteException {
+        try {
+            clientSignature.update(msg.getBytes());
+            if (clientSignature.verify(signature)) {
+                System.out.println("** Validated server message **");
+                System.out.println("Received from server: " + msg);
+            } else {
+                System.out.println("Not validate server message");
+            }
+        } catch (SignatureException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     // Receives server public key as confirmation of client registration
-    @Override
-    public void registeringConfirmation(String text) {
-        System.out.println("Client registration successful!");
-        System.out.println("Server key is: " + text);
-    }
+//    @Override
+//    public void registeringConfirmation(String text) {
+//        System.out.println("Client registration successful!");
+//        System.out.println("Server key is: " + text);
+//    }
 
     @Override
     public void inviteToAppointment(String apName, Timestamp apTime) throws RemoteException {
@@ -78,7 +100,7 @@ public class CliImpl extends UnicastRemoteObject implements InterfaceCli {
         String inputtedGuests = userReader.nextLine();
         List<String> guests = List.of(inputtedGuests.split("-"));
         System.out.println("Invited:");
-        for (int i = 0 ; i< guests.size(); i++) {
+        for (int i = 0; i < guests.size(); i++) {
             System.out.println(guests.get(i));
         }
         // Call server
@@ -126,7 +148,7 @@ public class CliImpl extends UnicastRemoteObject implements InterfaceCli {
 
             System.out.println("Printing appointments of day:");
             System.out.println("---");
-            for (int i = 0 ; i< appointments.size(); i++) {
+            for (int i = 0; i < appointments.size(); i++) {
                 System.out.println(appointments.get(i));
             }
             System.out.println("---");
