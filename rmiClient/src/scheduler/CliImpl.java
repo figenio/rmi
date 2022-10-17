@@ -41,19 +41,16 @@ public class CliImpl extends UnicastRemoteObject implements InterfaceCli {
         System.out.println("Do you accepted? (y/n)");
         String option = userReader.nextLine();
         if (option.startsWith("y")) {
-            System.out.println("What time is alert to be set? (set 0 if no alarm is needed)");
-            int time = Integer.parseInt(userReader.nextLine());
-            serverReference.confirmAppointment(clientName, apName, time);
+//            System.out.println("What time is alert to be set? (set 0 if no alarm is needed)");
+//            int time = Integer.parseInt(userReader.nextLine());
+            System.out.println("Appointment confirmed");
+            serverReference.confirmAppointment(clientName, apName, 5);
         } else if (option.startsWith("n")) {
             System.out.println("Appointment refused");
             serverReference.confirmAppointment(clientName, apName, -1);
         }
 
     }
-
-    /* CONVITE DE EVENTO
-    * Recebe info de compromisso e o usuário responde se tem ou não interesse e o horário do alerta que quer*/
-
 
 
     /* ----- OUT METHODS ----- */
@@ -113,6 +110,26 @@ public class CliImpl extends UnicastRemoteObject implements InterfaceCli {
         String appointmentName = userReader.nextLine();
         try {
             this.serverReference.cancelAppointmentAlert(this.clientName, appointmentName);
+        } catch (RemoteException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    void queryAppointments() {
+        System.out.println("Querying for appointments");
+
+        System.out.println("Give the date to be queried:");
+        Timestamp appointmentTime = Timestamp.valueOf(userReader.nextLine());
+
+        try {
+            List<String> appointments = this.serverReference.queryAppointments(this.clientName, appointmentTime);
+
+            System.out.println("Printing appointments of day:");
+            System.out.println("---");
+            for (int i = 0 ; i< appointments.size(); i++) {
+                System.out.println(appointments.get(i));
+            }
+            System.out.println("---");
         } catch (RemoteException e) {
             throw new RuntimeException(e);
         }

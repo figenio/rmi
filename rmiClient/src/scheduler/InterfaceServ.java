@@ -12,4 +12,5 @@ public interface InterfaceServ extends Remote {
     void confirmAppointment(String clientName, String apName, int alertTime) throws RemoteException;
     void cancelAppointment(String clientName, String apName) throws RemoteException;
     void cancelAppointmentAlert(String clientName, String apName) throws RemoteException;
+    public List<String> queryAppointments(String clientName, Timestamp dateToSearch) throws RemoteException;
 }

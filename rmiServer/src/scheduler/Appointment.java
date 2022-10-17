@@ -11,14 +11,14 @@ public class Appointment {
     Timestamp dateTime; // Date and time of appointment
     Map<String, Integer> guests; // List of guests
 
-    public Appointment(Timestamp dateTime, List<String> guests) {
+    public Appointment(Timestamp dateTime) {
 //        this.name = name;
         this.dateTime = dateTime;
         this.guests = new HashMap<>();
 
-        for (int i = 0 ; i< guests.size(); i++) {
-            this.guests.put(guests.get(i), 0);
-        }
+//        for (int i = 0 ; i< guests.size(); i++) {
+//            this.guests.put(guests.get(i), 0);
+//        }
     }
 
     // Adds a guest to the appointment

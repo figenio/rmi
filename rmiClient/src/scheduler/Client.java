@@ -23,7 +23,7 @@ public class Client {
             System.out.println("1 - Register new appointment");
             System.out.println("2 - Cancel appointment");
             System.out.println("3 - Cancel appointment alert");
-            System.out.println("4 - Consult appointments");
+            System.out.println("4 - Query appointments");
             System.out.println("5 - Ping server");
             System.out.println("If nothing, than type anything else.");
 
@@ -48,6 +48,9 @@ public class Client {
                             break;
                         case 3:
                             clientReference.cancelAppointmentAlert();
+                            break;
+                        case 4:
+                            clientReference.queryAppointments();
                             break;
                         case 5:
                             clientReference.pingServ();
