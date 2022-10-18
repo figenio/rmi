@@ -38,12 +38,18 @@ public class Server {
                     }
                 }
 
+                List<String> guestsInvited = new ArrayList<>();
                 for (Map.Entry<String, List<String>> client : clientsToInvite.entrySet()) {
-                    for (int i = 0 ; i< client.getValue().size(); i++) {
+                    guestsInvited.add(client.getKey());
+                    for (int i = 0; i < client.getValue().size(); i++) {
                         serverReference.inviteClient(client.getKey(), client.getValue().get(i));
                     }
                 }
-                clientsToInvite = new HashMap<>();
+                if (guestsInvited.size() > 0) {
+                    for (int i = 0; i < guestsInvited.size(); i++) {
+                        clientsToInvite.remove(guestsInvited.get(i));
+                    }
+                }
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }

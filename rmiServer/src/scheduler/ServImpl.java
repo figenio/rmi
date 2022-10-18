@@ -74,8 +74,8 @@ public class ServImpl extends UnicastRemoteObject implements InterfaceServ {
         this.confirmAppointment(clientName, apName, alertTime); // Confirm appointment for its creator
 
 
-        List<String> clientInvitations = new ArrayList<>();
         for (int i = 0 ; i< guests.size(); i++) {
+            List<String> clientInvitations = new ArrayList<>();
             if (clientsToInvite.containsKey(guests.get(i)) && !clientsToInvite.get(guests.get(i)).isEmpty()) {
                 clientInvitations = clientsToInvite.get(guests.get(i));
             }
