@@ -50,18 +50,12 @@ public class CliImpl extends UnicastRemoteObject implements InterfaceCli {
         }
     }
 
-    // Receives server public key as confirmation of client registration
-//    @Override
-//    public void registeringConfirmation(String text) {
-//        System.out.println("Client registration successful!");
-//        System.out.println("Server key is: " + text);
-//    }
-
     @Override
     public void inviteToAppointment(String apName, Timestamp apTime, String text, byte[] signature) throws RemoteException {
         try {
             clientSignature.update(text.getBytes());
 
+            // Server signature validation
             if (clientSignature.verify(signature)) {
                 System.out.println("** Validated server message **");
 
@@ -69,8 +63,6 @@ public class CliImpl extends UnicastRemoteObject implements InterfaceCli {
                 System.out.println("Do you accepted? (y/n)");
                 String option = userReader.nextLine();
                 if (option.startsWith("y")) {
-//            System.out.println("What time is alert to be set? (set 0 if no alarm is needed)");
-//            int time = Integer.parseInt(userReader.nextLine());
                     System.out.println("Appointment confirmed");
                     serverReference.confirmAppointment(clientName, apName, 5);
                 } else if (option.startsWith("n")) {
@@ -78,7 +70,7 @@ public class CliImpl extends UnicastRemoteObject implements InterfaceCli {
                     serverReference.confirmAppointment(clientName, apName, -1);
                 }
             } else {
-                System.out.println("Not validate server message");
+                System.out.println("Not validated server message");
             }
         } catch (SignatureException e) {
             throw new RuntimeException(e);
@@ -87,15 +79,6 @@ public class CliImpl extends UnicastRemoteObject implements InterfaceCli {
 
 
     /* ----- OUT METHODS ----- */
-
-    // Simple method for testing purposes
-    public void pingServ() {
-        try {
-            this.serverReference.pingServer(this.clientName, this);
-        } catch (RemoteException e) {
-            throw new RuntimeException(e);
-        }
-    }
 
     /* Register Appointment */
     public void registerAppointment() {
@@ -167,8 +150,4 @@ public class CliImpl extends UnicastRemoteObject implements InterfaceCli {
             throw new RuntimeException(e);
         }
     }
-
-    /* Consult Appointments */
-
-
 }
